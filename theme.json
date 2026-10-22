@@ -1,10 +1,10 @@
 {
   "id": "newtab-in-folder",
   "name": "New Tab in Folder",
-  "description": "Ctrl+T in a folder opens the new tab inside that folder, right after the current tab.",
-  "version": "1.0.0",
+  "description": "Ctrl+T in a folder opens the new tab inside that folder, right after the current tab. Ctrl+Shift+T reopens a closed folder tab in its folder.",
+  "version": "1.1.0",
   "createdAt": "2026-10-22",
-  "updatedAt": "2026-10-22T00:00:00Z",
+  "updatedAt": "2026-10-22T16:05:00Z",
   "fork": ["zen"],
   "scripts": {
     "newtab-in-folder.uc.js": {

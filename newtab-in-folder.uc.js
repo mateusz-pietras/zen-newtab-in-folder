@@ -71,6 +71,46 @@
     },
   };
 
+  // A reopened closed tab (Ctrl+Shift+T) is placed back in its folder while it
+  // is created, then Zen pins it and drops it out of the folder.
+  const reopenedInFolder = new WeakMap();
+
+  const folderTabs = (folder) => folder.tabs.filter((t) => !t.hasAttribute("zen-empty-tab"));
+
+  const onTabGrouped = (event) => {
+    const tab = event.detail;
+    const folder = event.target;
+    if (!tab.initializingTab || !folder.isZenFolder || folder.isLiveFolder) return;
+    const tabs = folderTabs(folder);
+    const index = tabs.indexOf(tab);
+    reopenedInFolder.set(tab, {
+      folder,
+      previous: tabs[index - 1],
+      next: tabs[index + 1],
+      dropped: false,
+    });
+  };
+
+  const onTabUngrouped = (event) => {
+    const entry = reopenedInFolder.get(event.detail);
+    if (entry && event.detail.initializingTab && entry.folder === event.target) {
+      entry.dropped = true;
+    }
+  };
+
+  const onTabRestoring = (event) => {
+    const tab = event.target;
+    const entry = reopenedInFolder.get(tab);
+    reopenedInFolder.delete(tab);
+    if (!entry?.dropped || tab.group || !entry.folder.isConnected) return;
+    entry.folder.addTabs([tab]);
+    if (entry.previous?.group === entry.folder) {
+      gBrowser.moveTabAfter(tab, entry.previous);
+    } else if (entry.next?.group === entry.folder) {
+      gBrowser.moveTabBefore(tab, entry.next);
+    }
+  };
+
   const destroy = () => {
     if (destroyed) return;
     destroyed = true;
@@ -79,6 +119,9 @@
     }
     urlbarObserver?.disconnect();
     window.removeEventListener("TabOpen", onTabOpen);
+    window.removeEventListener("TabGrouped", onTabGrouped);
+    window.removeEventListener("TabUngrouped", onTabUngrouped);
+    window.removeEventListener("SSTabRestoring", onTabRestoring);
     if (wrappedOpenTab) gBrowser.removeTabsProgressListener(progressListener);
     window.removeEventListener("unload", destroy);
     if (window[key]?.destroy === destroy) delete window[key];
@@ -106,6 +149,9 @@
     urlbarObserver.observe(gURLBar, { attributeFilter: ["zen-newtab"] });
 
     window.addEventListener("TabOpen", onTabOpen);
+    window.addEventListener("TabGrouped", onTabGrouped);
+    window.addEventListener("TabUngrouped", onTabUngrouped);
+    window.addEventListener("SSTabRestoring", onTabRestoring);
     gBrowser.addTabsProgressListener(progressListener);
   };
 
