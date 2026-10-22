@@ -1,0 +1,15 @@
+{
+  "id": "newtab-in-folder",
+  "name": "New Tab in Folder",
+  "description": "Ctrl+T in a folder opens the new tab inside that folder, right after the current tab.",
+  "version": "1.0.0",
+  "createdAt": "2026-10-22",
+  "updatedAt": "2026-10-22T00:00:00Z",
+  "fork": ["zen"],
+  "scripts": {
+    "newtab-in-folder.uc.js": {
+      "include": ["chrome://browser/content/browser.xhtml"]
+    }
+  },
+  "supportsUnload": true
+}
